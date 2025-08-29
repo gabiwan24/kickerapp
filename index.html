@@ -1,1 +1,830 @@
-<!doctype html> <html lang="de"> <head> <meta charset="UTF-8" /> <link rel="icon" type="image/svg+xml" href="/vite.svg" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <title>Kicker App</title> </head> <body> <div id="root"></div> <script type="module" src="/src/main.jsx"></script> </body> </html>
+import React, { useState, useEffect, useMemo } from 'react';
+
+// Placeholder for player images
+const getPlayerImageUrl = (firstName, lastName) => {
+    return `https://placehold.co/200/424242/FFFFFF?text=${firstName[0]}${lastName[0]}`;
+};
+
+// Initial mock data as described in the prompt, expanded to 12 players
+const initialPlayers = [
+    { id: 1, firstName: "Hans", lastName: "Müller", country: "DE", score: 1580, gamesWon: 174, gamesLost: 92, totalGames: 266, gamesAsStriker: 130, gamesAsDefender: 136, goalsAsStriker: 1437, goalsAsDefender: 1189, shutoutWins: 12, totalPlaytime: 127680000, seasonsWon: 1, currentWinStreak: 2, maxWinStreak: 10, isActive: true, img: getPlayerImageUrl("Hans", "Müller") },
+    { id: 2, firstName: "Jens", lastName: "Meier", country: "AUT", score: 1550, gamesWon: 150, gamesLost: 100, totalGames: 250, gamesAsStriker: 120, gamesAsDefender: 130, goalsAsStriker: 1300, goalsAsDefender: 1000, shutoutWins: 8, totalPlaytime: 120000000, seasonsWon: 0, currentWinStreak: 0, maxWinStreak: 8, isActive: true, img: getPlayerImageUrl("Jens", "Meier") },
+    { id: 3, firstName: "Anna", lastName: "Schmidt", country: "CH", score: 1490, gamesWon: 110, gamesLost: 110, totalGames: 220, gamesAsStriker: 115, gamesAsDefender: 105, goalsAsStriker: 1150, goalsAsDefender: 950, shutoutWins: 5, totalPlaytime: 105600000, seasonsWon: 0, currentWinStreak: 3, maxWinStreak: 6, isActive: true, img: getPlayerImageUrl("Anna", "Schmidt") },
+    { id: 4, firstName: "Peter", lastName: "Klein", country: "DE", score: 1420, gamesWon: 80, gamesLost: 150, totalGames: 230, gamesAsStriker: 100, gamesAsDefender: 130, goalsAsStriker: 900, goalsAsDefender: 800, shutoutWins: 3, totalPlaytime: 110400000, seasonsWon: 0, currentWinStreak: 0, maxWinStreak: 4, isActive: true, img: getPlayerImageUrl("Peter", "Klein") },
+    { id: 5, firstName: "Maria", lastName: "Huber", country: "AUT", score: 1610, gamesWon: 190, gamesLost: 70, totalGames: 260, gamesAsStriker: 140, gamesAsDefender: 120, goalsAsStriker: 1600, goalsAsDefender: 1300, shutoutWins: 15, totalPlaytime: 124800000, seasonsWon: 2, currentWinStreak: 5, maxWinStreak: 12, isActive: true, img: getPlayerImageUrl("Maria", "Huber") },
+    { id: 6, firstName: "Lukas", lastName: "Fischer", country: "DE", score: 1520, gamesWon: 130, gamesLost: 90, totalGames: 220, gamesAsStriker: 110, gamesAsDefender: 110, goalsAsStriker: 1250, goalsAsDefender: 1050, shutoutWins: 10, totalPlaytime: 115200000, seasonsWon: 0, currentWinStreak: 1, maxWinStreak: 7, isActive: true, img: getPlayerImageUrl("Lukas", "Fischer") },
+    { id: 7, firstName: "Sophie", lastName: "Weber", country: "CH", score: 1480, gamesWon: 100, gamesLost: 100, totalGames: 200, gamesAsStriker: 100, gamesAsDefender: 100, goalsAsStriker: 1000, goalsAsDefender: 900, shutoutWins: 4, totalPlaytime: 100800000, seasonsWon: 0, currentWinStreak: 0, maxWinStreak: 5, isActive: true, img: getPlayerImageUrl("Sophie", "Weber") },
+    { id: 8, firstName: "Max", lastName: "Hofmann", country: "AUT", score: 1590, gamesWon: 180, gamesLost: 80, totalGames: 260, gamesAsStriker: 130, gamesAsDefender: 130, goalsAsStriker: 1500, goalsAsDefender: 1200, shutoutWins: 14, totalPlaytime: 129600000, seasonsWon: 1, currentWinStreak: 4, maxWinStreak: 11, isActive: true, img: getPlayerImageUrl("Max", "Hofmann") },
+    { id: 9, firstName: "Laura", lastName: "Wagner", country: "DE", score: 1450, gamesWon: 90, gamesLost: 120, totalGames: 210, gamesAsStriker: 105, gamesAsDefender: 105, goalsAsStriker: 950, goalsAsDefender: 850, shutoutWins: 6, totalPlaytime: 105600000, seasonsWon: 0, currentWinStreak: 0, maxWinStreak: 5, isActive: true, img: getPlayerImageUrl("Laura", "Wagner") },
+    { id: 10, firstName: "Felix", lastName: "Bauer", country: "CH", score: 1510, gamesWon: 120, gamesLost: 95, totalGames: 215, gamesAsStriker: 110, gamesAsDefender: 105, goalsAsStriker: 1100, goalsAsDefender: 1000, shutoutWins: 9, totalPlaytime: 110400000, seasonsWon: 0, currentWinStreak: 2, maxWinStreak: 6, isActive: true, img: getPlayerImageUrl("Felix", "Bauer") },
+    { id: 11, firstName: "Julia", lastName: "Richter", country: "AUT", score: 1470, gamesWon: 95, gamesLost: 105, totalGames: 200, gamesAsStriker: 100, gamesAsDefender: 100, goalsAsStriker: 1050, goalsAsDefender: 920, shutoutWins: 7, totalPlaytime: 103200000, seasonsWon: 0, currentWinStreak: 0, maxWinStreak: 4, isActive: true, img: getPlayerImageUrl("Julia", "Richter") },
+    { id: 12, firstName: "Leon", lastName: "Wolf", country: "DE", score: 1560, gamesWon: 160, gamesLost: 90, totalGames: 250, gamesAsStriker: 125, gamesAsDefender: 125, goalsAsStriker: 1400, goalsAsDefender: 1150, shutoutWins: 11, totalPlaytime: 124800000, seasonsWon: 0, currentWinStreak: 3, maxWinStreak: 9, isActive: true, img: getPlayerImageUrl("Leon", "Wolf") },
+];
+
+
+const initialSeasonHistory = [
+    { seasonNumber: "1 (2025)", winnerName: "Hans Müller", winnerId: 1, endDate: new Date(), winnerScore: 1575 },
+];
+
+const initialAppState = {
+    currentSeason: 2,
+};
+
+// The main App component
+export default function App() {
+    // STATE MANAGEMENT
+    const [players, setPlayers] = useState(initialPlayers);
+    const [seasonHistory, setSeasonHistory] = useState(initialSeasonHistory);
+    const [appState, setAppState] = useState(initialAppState);
+    const [page, setPage] = useState('login');
+    const [password, setPassword] = useState('');
+    
+    // New Game State
+    const [selectedPlayers, setSelectedPlayers] = useState({
+        t1d: null, t1f: null, t2f: null, t2d: null
+    });
+    const selectionOrder = ['t1d', 't1f', 't2f', 't2d'];
+
+    // Current Game State
+    const [game, setGame] = useState(null);
+
+    // Modal State
+    const [modal, setModal] = useState({ type: null, data: null });
+
+    // DERIVED STATE & MEMOIZED VALUES
+    const activePlayers = useMemo(() => players.filter(p => p.isActive).sort((a, b) => a.firstName.localeCompare(b.firstName)), [players]);
+    const rankedPlayers = useMemo(() => [...players].sort((a, b) => b.score - a.score), [players]);
+    const isSetupComplete = useMemo(() => Object.values(selectedPlayers).every(p => p !== null), [selectedPlayers]);
+
+    // HANDLERS & LOGIC
+    
+    const handleLogin = () => {
+        if (password === '1234') {
+            setPage('newGame');
+            setPassword('');
+        } else {
+            setModal({ type: 'error', data: { message: 'Falsches Passwort' } });
+        }
+    };
+
+    const handlePlayerSelect = (player) => {
+        const selectedIds = Object.values(selectedPlayers).filter(Boolean).map(p => p.id);
+        if (selectedIds.includes(player.id)) {
+            handlePlayerDeselect(player.id);
+            return;
+        }
+        const nextPosition = selectionOrder.find(pos => selectedPlayers[pos] === null);
+        if (nextPosition) {
+            setSelectedPlayers(prev => ({ ...prev, [nextPosition]: player }));
+        }
+    };
+
+    const handlePlayerDeselect = (playerId) => {
+        setSelectedPlayers(prev => {
+            const newSelection = { ...prev };
+            for (const pos in newSelection) {
+                if (newSelection[pos]?.id === playerId) {
+                    newSelection[pos] = null;
+                }
+            }
+            return newSelection;
+        });
+    };
+    
+    const handleAufstellungClick = (position) => {
+        setSelectedPlayers(prev => ({...prev, [position]: null}));
+    };
+
+    const startGame = () => {
+        setGame({
+            startTime: Date.now(),
+            teams: {
+                team1: { defender: selectedPlayers.t1d, forward: selectedPlayers.t1f, score: 0 },
+                team2: { forward: selectedPlayers.t2f, defender: selectedPlayers.t2d, score: 0 }
+            },
+            history: [],
+        });
+        setPage('currentGame');
+    };
+    
+    const handleGoal = (team, player) => {
+        const WIN_SCORE = 6;
+        const EXTEND_SCORE = 5;
+        const EXTEND_WIN_SCORE = 7;
+
+        setGame(prevGame => {
+            const newGame = JSON.parse(JSON.stringify(prevGame));
+            const scoringTeam = newGame.teams[team];
+            const opponentTeam = newGame.teams[team === 'team1' ? 'team2' : 'team1'];
+            
+            scoringTeam.score += 1;
+            newGame.history.push({ team, player });
+
+            let winner = null;
+            const wasInOvertime = prevGame.teams.team1.score >= EXTEND_SCORE && prevGame.teams.team2.score >= EXTEND_SCORE;
+            const targetScore = wasInOvertime ? EXTEND_WIN_SCORE : WIN_SCORE;
+            
+            if (scoringTeam.score >= targetScore) {
+                if (targetScore === WIN_SCORE && opponentTeam.score === EXTEND_SCORE) {
+                    // Game continues to 7
+                } else {
+                    winner = team;
+                }
+            }
+
+            if (winner) {
+                const winnerName = winner === 'team1' ? `Team 1 (${scoringTeam.defender.firstName} & ${scoringTeam.forward.firstName})` : `Team 2 (${scoringTeam.forward.firstName} & ${scoringTeam.defender.firstName})`;
+                const result = `${scoringTeam.score}:${opponentTeam.score}`;
+                setTimeout(() => setModal({ type: 'gameEnd', data: { winnerName, result, gameData: newGame } }), 200);
+            }
+
+            return newGame;
+        });
+    };
+
+    const correctScore = () => {
+        setGame(prevGame => {
+            if (prevGame.history.length === 0) return prevGame;
+            const newGame = JSON.parse(JSON.stringify(prevGame));
+            const lastGoal = newGame.history.pop();
+            if (lastGoal) {
+                newGame.teams[lastGoal.team].score -= 1;
+            }
+            return newGame;
+        });
+    };
+
+    const switchPositions = (team) => {
+        setGame(prevGame => {
+            const newGame = JSON.parse(JSON.stringify(prevGame));
+            const currentTeam = newGame.teams[team];
+            [currentTeam.defender, currentTeam.forward] = [currentTeam.forward, currentTeam.defender];
+            return newGame;
+        });
+    };
+
+    const switchSides = () => {
+        setGame(prevGame => {
+            const newGame = JSON.parse(JSON.stringify(prevGame));
+            [newGame.teams.team1, newGame.teams.team2] = [newGame.teams.team2, newGame.teams.team1];
+            return newGame;
+        });
+    };
+
+    const resetGame = () => {
+        setSelectedPlayers({ t1d: null, t1f: null, t2f: null, t2d: null });
+        setGame(null);
+        setModal({ type: null, data: null });
+    };
+
+    const saveGameData = (gameData) => {
+        const endTime = Date.now();
+        const duration = endTime - gameData.startTime;
+        const { teams } = gameData;
+        const winner = teams.team1.score > teams.team2.score ? 'team1' : 'team2';
+        const loser = winner === 'team1' ? 'team2' : 'team1';
+
+        const winningTeam = teams[winner];
+        const losingTeam = teams[loser];
+        const isShutout = losingTeam.score === 0;
+        const ELO_CHANGE = 15;
+
+        const updatedPlayers = players.map(p => {
+            const playerCopy = { ...p };
+            const playerIsInGame = [winningTeam.defender.id, winningTeam.forward.id, losingTeam.defender.id, losingTeam.forward.id].includes(p.id);
+
+            if (!playerIsInGame) return p;
+            
+            playerCopy.totalGames = (playerCopy.totalGames || 0) + 1;
+            playerCopy.totalPlaytime = (playerCopy.totalPlaytime || 0) + duration;
+
+            const goalsScored = gameData.history.filter(goal => goal.player.id === p.id).length;
+            
+            let position = null;
+            if (teams.team1.defender.id === p.id || teams.team2.defender.id === p.id) position = 'defender';
+            if (teams.team1.forward.id === p.id || teams.team2.forward.id === p.id) position = 'forward';
+
+            if(position === 'defender') {
+                playerCopy.gamesAsDefender += 1;
+                playerCopy.goalsAsDefender += goalsScored;
+            } else {
+                playerCopy.gamesAsStriker += 1;
+                playerCopy.goalsAsStriker += goalsScored;
+            }
+
+            if (p.id === winningTeam.defender.id || p.id === winningTeam.forward.id) {
+                playerCopy.gamesWon += 1;
+                playerCopy.score += ELO_CHANGE;
+                playerCopy.currentWinStreak += 1;
+                if (playerCopy.currentWinStreak > playerCopy.maxWinStreak) {
+                    playerCopy.maxWinStreak = playerCopy.currentWinStreak;
+                }
+                if (isShutout) {
+                    playerCopy.shutoutWins += 1;
+                }
+            } else {
+                playerCopy.gamesLost += 1;
+                playerCopy.score -= ELO_CHANGE;
+                playerCopy.currentWinStreak = 0;
+            }
+            return playerCopy;
+        });
+
+        setPlayers(updatedPlayers);
+    };
+
+    const handleEndGameOption = (option, gameData) => {
+        if (option === 'saveAndExit') {
+            saveGameData(gameData);
+            resetGame();
+            setPage('ranking');
+        } else if (option === 'rematch') {
+            saveGameData(gameData);
+            const newGameSetup = {
+                startTime: Date.now(),
+                teams: {
+                    team1: { ...gameData.teams.team1, score: 0 },
+                    team2: { ...gameData.teams.team2, score: 0 },
+                },
+                history: [],
+            };
+            setGame(newGameSetup);
+            setModal({ type: null, data: null });
+        } else {
+            resetGame();
+            setPage('newGame');
+        }
+    };
+    
+    const handleAddPlayer = (playerData) => {
+        const newPlayer = {
+            id: Date.now(),
+            ...playerData,
+            score: 1500, gamesWon: 0, gamesLost: 0, totalGames: 0, gamesAsStriker: 0,
+            gamesAsDefender: 0, goalsAsStriker: 0, goalsAsDefender: 0, shutoutWins: 0,
+            totalPlaytime: 0, seasonsWon: 0, currentWinStreak: 0, maxWinStreak: 0, isActive: true,
+        };
+        setPlayers(prev => [...prev, newPlayer]);
+        setModal({ type: null, data: null });
+    };
+
+    const handleUpdatePlayer = (playerData) => {
+        setPlayers(prev => prev.map(p => p.id === playerData.id ? { ...p, ...playerData } : p));
+        setModal({ type: null, data: null });
+    };
+    
+    const handleDeletePlayer = (playerId) => {
+        setPlayers(prev => prev.map(p => {
+            if (p.id === playerId) {
+                return {
+                    ...p,
+                    isActive: false,
+                    lastName: p.lastName.charAt(0) + '.',
+                    img: ''
+                };
+            }
+            return p;
+        }));
+        setModal({ type: null, data: null });
+    };
+
+    const handleCloseSeason = () => {
+        const winner = rankedPlayers[0];
+        const newSeasonHistory = {
+            seasonNumber: `${appState.currentSeason} (${new Date().getFullYear()})`,
+            winnerName: `${winner.firstName} ${winner.lastName}`,
+            winnerId: winner.id,
+            endDate: new Date(),
+            winnerScore: winner.score,
+        };
+        
+        setSeasonHistory(prev => [...prev, newSeasonHistory]);
+        setAppState(prev => ({ ...prev, currentSeason: prev.currentSeason + 1 }));
+        
+        setPlayers(prev => prev.map(p => {
+            if (p.id === winner.id) {
+                return { ...p, seasonsWon: p.seasonsWon + 1 };
+            }
+            return p;
+        }));
+
+        setModal({ type: 'seasonClosed', data: { winnerName: `${winner.firstName} ${winner.lastName}` } });
+    };
+
+    const renderPage = () => {
+        switch (page) {
+            case 'login': return <LoginPage {...{ handleLogin, setPassword, password }} />;
+            case 'newGame': return <NewGamePage {...{ activePlayers, selectedPlayers, handlePlayerSelect, handleAufstellungClick, isSetupComplete, startGame, selectionOrder }} />;
+            case 'currentGame': return <CurrentGamePage {...{ game, handleGoal, correctScore, switchPositions, switchSides, onCancelRequest: () => setModal({ type: 'confirmCancelGame' }) }} />;
+            case 'ranking': return <RankingPage {...{ rankedPlayers }} />;
+            case 'history': return <HistoryPage {...{ seasonHistory, players, rankedPlayers }} />;
+            case 'manager': return <ManagerPage {...{ players, setModal }} />;
+            default: return <div>Seite nicht gefunden</div>;
+        }
+    };
+
+    return (
+        <div className="bg-[#111111] text-gray-200 h-screen overflow-y-hidden font-sans">
+            <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+                <Header currentPage={page} setPage={setPage} />
+                <main className={`relative mt-6 ${page !== 'newGame' ? 'bg-gray-900 shadow-2xl p-4 sm:p-6' : ''}`}>
+                    {renderPage()}
+                </main>
+            </div>
+            <ModalManager {...{ modal, setModal, handleEndGameOption, handleAddPlayer, handleUpdatePlayer, handleDeletePlayer, handleCloseSeason, setPage }} />
+        </div>
+    );
+}
+
+// --- SUB-COMPONENTS ---
+
+const Header = ({ currentPage, setPage }) => {
+    const navItems = [
+        { id: 'newGame', label: 'New Game' },
+        { id: 'ranking', label: 'Ranking' },
+        { id: 'history', label: 'History' },
+        { id: 'manager', label: 'Manager' },
+    ];
+
+    if (currentPage === 'login' || currentPage === 'currentGame') return null;
+
+    return (
+        <header className="flex flex-col sm:flex-row justify-between items-center">
+            <h1 className="text-3xl sm:text-4xl font-bold text-cyan-400 tracking-wider">KICKER-TRACKER</h1>
+            <nav className="mt-4 sm:mt-0">
+                <ul className="flex space-x-2 sm:space-x-4 bg-gray-800 p-2">
+                    {navItems.map(item => (
+                        <li key={item.id}>
+                            <button
+                                onClick={() => setPage(item.id)}
+                                className={`px-3 py-2 text-sm sm:text-base font-semibold transition-all duration-200 ${currentPage === item.id ? 'bg-cyan-500 text-white shadow-lg' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}
+                            >
+                                {item.label}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        </header>
+    );
+};
+
+// --- PAGES ---
+
+const LoginPage = ({ handleLogin, setPassword, password }) => (
+    <div className="flex flex-col items-center justify-center h-[80vh]">
+        <div className="w-full max-w-sm p-8 bg-gray-900 shadow-lg">
+            <h2 className="text-2xl font-bold text-center text-cyan-400 mb-6">Login</h2>
+            <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Passwort"
+                    className="w-full px-4 py-2 mb-4 bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+                <button type="submit" className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 transition-colors duration-300">
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+);
+
+const NewGamePage = ({ activePlayers, selectedPlayers, handlePlayerSelect, handleAufstellungClick, isSetupComplete, startGame, selectionOrder }) => {
+    const PlayerCard = ({ player }) => {
+        const isSelected = Object.values(selectedPlayers).some(p => p?.id === player.id);
+        const imageUrl = player.img || getPlayerImageUrl(player.firstName, player.lastName);
+        return (
+            <div
+                onClick={() => handlePlayerSelect(player)}
+                style={{'--selection-color': '#0AFF47'}}
+                className={`relative cursor-pointer transition-all duration-200 shadow-md overflow-hidden border-4 ${isSelected ? 'border-[var(--selection-color)]' : 'border-white'}`}
+            >
+                <img src={imageUrl} alt={`${player.firstName} ${player.lastName}`} className="w-full h-full object-cover aspect-[5/6]" onError={(e) => { e.target.onerror = null; e.target.src=getPlayerImageUrl(player.firstName, player.lastName)}} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                
+                {player.seasonsWon > 0 && (
+                    <div className="absolute top-2 right-2 flex items-center bg-black/50 px-2 py-1">
+                       <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                       <span className="text-white text-xs font-bold ml-1">{player.seasonsWon}</span>
+                    </div>
+                )}
+
+                <div className="absolute bottom-2 left-2 text-white">
+                    <p className="font-bold text-sm drop-shadow-md">{player.firstName} {player.lastName}</p>
+                    <p className="text-xs text-gray-300 drop-shadow-md">{player.country}</p>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="h-[calc(100vh-12rem)] flex flex-col">
+            <h2 className="text-2xl font-bold mb-4 text-cyan-400">Spieler auswählen</h2>
+            <div className="flex-grow overflow-y-auto pb-4">
+                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {activePlayers.map(p => <PlayerCard key={p.id} player={p} />)}
+                </div>
+            </div>
+            
+            <AufstellungBar 
+                selectedPlayers={selectedPlayers} 
+                onPositionClick={handleAufstellungClick} 
+                selectionOrder={selectionOrder}
+                isSetupComplete={isSetupComplete}
+                onStartGame={startGame}
+            />
+        </div>
+    );
+};
+
+const AufstellungBar = ({ selectedPlayers, onPositionClick, selectionOrder, isSetupComplete, onStartGame }) => {
+    const nextPositionToFill = selectionOrder.find(pos => !selectedPlayers[pos]);
+
+    const PositionBox = ({ position, label }) => {
+        const player = selectedPlayers[position];
+        const isNext = position === nextPositionToFill;
+        
+        let borderColor = 'border-gray-600';
+        if (player) borderColor = 'border-green-500';
+        if (isNext) borderColor = 'border-blue-500';
+
+        return (
+            <div 
+                onClick={() => player && onPositionClick(position)}
+                className={`bg-[#2E2E2E] p-3 border-2 ${borderColor} transition-colors min-w-[180px] cursor-pointer`}
+            >
+                {player ? (
+                    <>
+                        <p className="font-bold text-lg text-green-400">{player.firstName} {player.lastName}</p>
+                        <p className="text-sm text-gray-400">{label}</p>
+                    </>
+                ) : (
+                    <>
+                        <p className="font-bold text-lg text-gray-200">Spieler auswählen</p>
+                        <p className="text-sm text-gray-500">{label}</p>
+                    </>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <div className="fixed bottom-0 left-0 right-0 bg-[#111111] border-t-2 border-gray-700 p-4 z-10">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-8">
+                <div className="flex-1 flex flex-col items-center gap-4">
+                    <p className="font-bold text-gray-400">Team 1</p>
+                    <div className="flex items-center gap-4">
+                        <PositionBox position="t1d" label="Defender" />
+                        <PositionBox position="t1f" label="Forward" />
+                    </div>
+                </div>
+                
+                {isSetupComplete && (
+                     <button onClick={onStartGame} className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 text-xl transition-transform duration-200 hover:scale-105 shadow-lg mx-8">
+                        Start
+                    </button>
+                )}
+
+                <div className="flex-1 flex flex-col items-center gap-4">
+                    <p className="font-bold text-gray-400">Team 2</p>
+                     <div className="flex items-center gap-4">
+                        <PositionBox position="t2f" label="Forward" />
+                        <PositionBox position="t2d" label="Defender" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+const CurrentGamePage = ({ game, handleGoal, correctScore, switchPositions, switchSides, onCancelRequest }) => {
+    if (!game) return <div>Lade Spiel...</div>;
+
+    const PlayerButton = ({ player, team, position }) => (
+        <button onClick={() => handleGoal(team, player)} className="w-full p-4 bg-gray-800 shadow-lg hover:bg-cyan-500 transition-all duration-200">
+            <p className="text-xl font-bold">{player.firstName} {player.lastName}</p>
+            <p className="text-md text-gray-400">{position}</p>
+        </button>
+    );
+
+    return (
+        <div className="flex flex-col items-center">
+             <button 
+                onClick={onCancelRequest} 
+                className="absolute top-4 right-4 text-4xl font-light text-gray-500 hover:text-white transition-colors z-10 leading-none"
+                aria-label="Spiel abbrechen"
+            >
+                &times;
+            </button>
+            <div className="text-6xl font-bold mb-8 tracking-widest">
+                <span className="text-white">{game.teams.team1.score}</span>
+                <span className="text-gray-600 mx-4">:</span>
+                <span className="text-white">{game.teams.team2.score}</span>
+            </div>
+
+            <div className="w-full max-w-4xl flex justify-between items-start gap-8">
+                <div className="w-1/2 flex flex-col gap-4 items-center">
+                    <h3 className="text-2xl font-semibold text-cyan-400 mb-2">Team 1</h3>
+                    <PlayerButton player={game.teams.team1.defender} team="team1" position="Defender" />
+                    <PlayerButton player={game.teams.team1.forward} team="team1" position="Forward" />
+                </div>
+                <div className="w-1/2 flex flex-col gap-4 items-center">
+                    <h3 className="text-2xl font-semibold text-cyan-400 mb-2">Team 2</h3>
+                    <PlayerButton player={game.teams.team2.forward} team="team2" position="Forward" />
+                    <PlayerButton player={game.teams.team2.defender} team="team2" position="Defender" />
+                </div>
+            </div>
+
+            <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl">
+                 <button onClick={() => switchPositions('team1')} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 transition-colors">T1 Positionen wechseln</button>
+                 <button onClick={() => switchPositions('team2')} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 transition-colors">T2 Positionen wechseln</button>
+                 <button onClick={switchSides} className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 transition-colors">Seiten wechseln</button>
+                 <button onClick={correctScore} className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 transition-colors">Tor korrigieren</button>
+            </div>
+        </div>
+    );
+};
+
+const RankingPage = ({ rankedPlayers }) => {
+    const getWinLossRatio = (p) => {
+        if (p.gamesLost === 0) return p.gamesWon > 0 ? '∞' : '0.00';
+        return (p.gamesWon / p.gamesLost).toFixed(2);
+    };
+    const getGoalAverage = (p) => {
+        const totalGoals = p.goalsAsStriker + p.goalsAsDefender;
+        const totalGames = p.gamesWon + p.gamesLost;
+        if (totalGames === 0) return '0.0';
+        return (totalGoals / totalGames).toFixed(1);
+    };
+
+    return (
+        <div>
+            <h2 className="text-2xl font-bold mb-4 text-cyan-400">Rangliste</h2>
+            <div className="overflow-x-auto">
+                <table className="w-full min-w-[800px] text-left">
+                    <thead className="bg-gray-800 text-gray-300 uppercase text-sm">
+                        <tr>
+                            <th className="p-3">#</th>
+                            <th className="p-3">Name</th>
+                            <th className="p-3 text-right">Score</th>
+                            <th className="p-3 text-right">Spiele</th>
+                            <th className="p-3">Sieg:Niederlage (Ratio)</th>
+                            <th className="p-3">Tore S:V (Avg)</th>
+                            <th className="p-3 text-right">Kästen</th>
+                            <th className="p-3">Max. Serie (Aktuell)</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-700">
+                        {rankedPlayers.map((p, index) => (
+                            <tr key={p.id} className="hover:bg-gray-800/50">
+                                <td className="p-3 font-bold">{index + 1}</td>
+                                <td className="p-3 font-semibold">{p.firstName} {p.lastName}</td>
+                                <td className="p-3 text-right font-mono text-cyan-400">{p.score}</td>
+                                <td className="p-3 text-right font-mono">{p.gamesWon + p.gamesLost}</td>
+                                <td className="p-3 font-mono">{p.gamesWon}:{p.gamesLost} ({getWinLossRatio(p)})</td>
+                                <td className="p-3 font-mono">{p.goalsAsStriker}:{p.goalsAsDefender} ({getGoalAverage(p)})</td>
+                                <td className="p-3 text-right font-mono">{p.shutoutWins}</td>
+                                <td className="p-3 font-mono">{p.maxWinStreak} ({p.currentWinStreak})</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
+const HistoryPage = ({ seasonHistory, players, rankedPlayers }) => {
+    const [showTotalPlaytime, setShowTotalPlaytime] = useState(false);
+
+    const totalGames = players.reduce((sum, p) => sum + (p.totalGames || 0), 0) / 4;
+    const totalGoals = players.reduce((sum, p) => sum + p.goalsAsStriker + p.goalsAsDefender, 0);
+    const totalPlaytimeMs = players.reduce((sum, p) => sum + (p.totalPlaytime || 0), 0) / 4;
+
+    const formatPlaytime = (ms) => {
+        if (!ms) return "0 Sekunden";
+        const totalSeconds = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return `${hours}h ${minutes}m ${seconds}s`;
+    };
+    
+    const leader = rankedPlayers[0];
+    const topScorer = [...players].sort((a, b) => (b.goalsAsStriker + b.goalsAsDefender) - (a.goalsAsStriker + a.goalsAsDefender))[0];
+    const shutoutKing = [...players].sort((a, b) => b.shutoutWins - a.shutoutWins)[0];
+
+    return (
+        <div className="relative pb-10">
+            <h2 className="text-2xl font-bold mb-4 text-cyan-400">Saison-Verlauf</h2>
+            <div className="bg-gray-800 p-4 mb-8">
+                <ul className="space-y-2">
+                    {seasonHistory.map(s => (
+                        <li key={s.seasonNumber} className="text-lg">
+                            <span className="font-bold">Saison {s.seasonNumber}:</span>
+                            <span className="ml-2 text-cyan-400">{s.winnerName}</span>
+                            <span className="ml-2 text-gray-400 text-sm">[{s.winnerScore} Punkte]</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            <h2 className="text-2xl font-bold mb-4 text-cyan-400">Gesamtstatistiken</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div className="bg-gray-800 p-4 text-center">
+                    <p className="text-4xl font-bold text-cyan-400">{Math.round(totalGames)}</p>
+                    <p className="text-gray-400">Gespielte Partien</p>
+                </div>
+                <div className="bg-gray-800 p-4 text-center">
+                    <p className="text-4xl font-bold text-cyan-400">{totalGoals}</p>
+                    <p className="text-gray-400">Erzielte Tore</p>
+                </div>
+            </div>
+
+            <h2 className="text-2xl font-bold mb-4 text-cyan-400">Aktuelle Zahlen und Fakten</h2>
+            <div className="space-y-3 text-gray-300">
+                {leader && <p>
+                    <span className="font-semibold text-white">{leader.firstName} {leader.lastName}</span> führt die Tabelle mit <span className="font-bold text-cyan-400">{leader.score}</span> Punkten an. Die aktuelle S/N Quote ist <span className="font-bold">{((leader.gamesWon / (leader.gamesLost || 1)).toFixed(2))}</span>.
+                </p>}
+                {topScorer && <p>
+                    Die meisten Tore erzielte <span className="font-semibold text-white">{topScorer.firstName} {topScorer.lastName}</span> mit <span className="font-bold">{topScorer.goalsAsStriker + topScorer.goalsAsDefender}</span> Toren.
+                </p>}
+                {shutoutKing && <p>
+                    Die meisten Kästen ({shutoutKing.shutoutWins}) hat <span className="font-semibold text-white">{shutoutKing.firstName} {shutoutKing.lastName}</span>.
+                </p>}
+            </div>
+
+            {showTotalPlaytime && (
+                <div className="mt-8 bg-gray-800 p-4 text-center">
+                    <p className="text-3xl font-bold text-cyan-400">{formatPlaytime(totalPlaytimeMs)}</p>
+                    <p className="text-gray-400">Gesamtspielzeit aller Partien</p>
+                </div>
+            )}
+
+            <button 
+                onClick={() => setShowTotalPlaytime(!showTotalPlaytime)}
+                className="absolute bottom-0 left-0 w-6 h-6 bg-gray-800 hover:bg-gray-700 focus:outline-none transition-colors"
+                aria-label="Zeige Gesamtspielzeit"
+            />
+        </div>
+    );
+};
+
+const ManagerPage = ({ players, setModal }) => {
+    const sortedPlayers = [...players].sort((a, b) => a.firstName.localeCompare(b.firstName));
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-cyan-400">Spieler verwalten</h2>
+                <div>
+                    <button onClick={() => setModal({ type: 'addPlayer' })} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 mr-4 transition-colors">Add New Player</button>
+                    <button onClick={() => setModal({ type: 'confirmCloseSeason' })} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 transition-colors">Close Season</button>
+                </div>
+            </div>
+            <ul className="space-y-2">
+                {sortedPlayers.map(p => (
+                    <li key={p.id} onClick={() => setModal({ type: 'editPlayer', data: p })} className={`flex justify-between items-center p-3 cursor-pointer transition-colors ${p.isActive ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-900 text-gray-500'}`}>
+                        <span>{p.firstName} {p.lastName} {p.isActive ? '' : '(Inaktiv)'}</span>
+                        <span className={`${p.isActive ? 'text-gray-400' : 'line-through'}`}>{p.country}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
+
+
+// --- MODALS ---
+
+const ModalManager = ({ modal, setModal, handleEndGameOption, handleAddPlayer, handleUpdatePlayer, handleDeletePlayer, handleCloseSeason, setPage }) => {
+    if (!modal.type) return null;
+
+    const closeModal = () => setModal({ type: null, data: null });
+
+    const renderModalContent = () => {
+        switch (modal.type) {
+            case 'error':
+                return (
+                    <div className="text-center">
+                        <h3 className="text-xl font-bold mb-4 text-red-500">Fehler</h3>
+                        <p>{modal.data.message}</p>
+                        <button onClick={closeModal} className="mt-6 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6">Close</button>
+                    </div>
+                );
+            case 'gameEnd':
+                return (
+                    <div className="text-center">
+                        <h3 className="text-2xl font-bold mb-2 text-cyan-400">{modal.data.result}</h3>
+                        <p className="text-lg mb-6">{modal.data.winnerName} hat gewonnen!</p>
+                        <div className="flex flex-col sm:flex-row justify-center gap-4">
+                            <button onClick={() => handleEndGameOption('saveAndExit', modal.data.gameData)} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4">Spiel beenden</button>
+                            <button onClick={() => handleEndGameOption('rematch', modal.data.gameData)} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4">Rematch</button>
+                            <button onClick={() => handleEndGameOption('exitNoSave', modal.data.gameData)} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4">Nicht speichern</button>
+                        </div>
+                    </div>
+                );
+            case 'addPlayer':
+            case 'editPlayer':
+                return <PlayerForm isEdit={modal.type === 'editPlayer'} playerData={modal.data} onSave={modal.type === 'editPlayer' ? handleUpdatePlayer : handleAddPlayer} onCancel={closeModal} onDelete={handleDeletePlayer} setModal={setModal} />;
+            case 'confirmDelete':
+                return (
+                    <div className="text-center">
+                        <h3 className="text-xl font-bold mb-4">Spieler wirklich löschen?</h3>
+                        <p>Die Statistiken bleiben erhalten, aber der Spieler kann nicht mehr ausgewählt werden.</p>
+                        <div className="flex justify-center gap-4 mt-6">
+                            <button onClick={() => handleDeletePlayer(modal.data.id)} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6">JA</button>
+                            <button onClick={closeModal} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6">ABBRECHEN</button>
+                        </div>
+                    </div>
+                );
+            case 'confirmCloseSeason':
+                 return (
+                    <div className="text-center">
+                        <h3 className="text-xl font-bold mb-4">Saison wirklich beenden?</h3>
+                        <p>Der Spieler mit den meisten Punkten gewinnt. Die neue Saison startet.</p>
+                        <div className="flex justify-center gap-4 mt-6">
+                            <button onClick={handleCloseSeason} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6">JA</button>
+                            <button onClick={closeModal} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6">ABBRECHEN</button>
+                        </div>
+                    </div>
+                );
+            case 'seasonClosed':
+                return (
+                     <div className="text-center">
+                        <h3 className="text-2xl font-bold mb-4 text-cyan-400">Herzlichen Glückwunsch, {modal.data.winnerName}!</h3>
+                        <p>Die Saison ist beendet. Die neue Saison hat begonnen.</p>
+                        <button onClick={() => { closeModal(); setPage('history'); }} className="mt-6 bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-6">Zur History</button>
+                    </div>
+                );
+            case 'confirmCancelGame':
+                return (
+                    <div className="text-center">
+                        <h3 className="text-xl font-bold mb-4">Spiel abbrechen?</h3>
+                        <p>Der aktuelle Spielstand wird nicht gespeichert.</p>
+                        <div className="flex justify-center gap-4 mt-6">
+                            <button onClick={() => handleEndGameOption('exitNoSave', null)} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6">JA</button>
+                            <button onClick={closeModal} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6">NEIN</button>
+                        </div>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 text-white shadow-2xl p-6 sm:p-8 w-full max-w-md relative">
+                <button onClick={closeModal} className="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl">&times;</button>
+                {renderModalContent()}
+            </div>
+        </div>
+    );
+};
+
+const PlayerForm = ({ isEdit, playerData, onSave, onCancel, onDelete, setModal }) => {
+    const [formState, setFormState] = useState({
+        firstName: playerData?.firstName || '',
+        lastName: playerData?.lastName || '',
+        country: playerData?.country || '',
+        img: playerData?.img || '',
+    });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormState(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const dataToSave = isEdit ? { ...playerData, ...formState } : formState;
+        onSave(dataToSave);
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <h3 className="text-xl font-bold mb-6 text-center text-cyan-400">{isEdit ? 'Spieler bearbeiten' : 'Neuer Spieler'}</h3>
+            <div className="space-y-4">
+                <input name="firstName" value={formState.firstName} onChange={handleChange} placeholder="Vorname" required className="w-full px-4 py-2 bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+                <input name="lastName" value={formState.lastName} onChange={handleChange} placeholder="Nachname" required className="w-full px-4 py-2 bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+                <input name="country" value={formState.country} onChange={handleChange} placeholder="Land (Kürzel)" required maxLength="3" className="w-full px-4 py-2 bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+                <input name="img" value={formState.img} onChange={handleChange} placeholder="Profilbild URL" className="w-full px-4 py-2 bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+            </div>
+            <div className="flex justify-between items-center mt-8">
+                <div>
+                    {isEdit && (
+                        <button type="button" onClick={() => setModal({type: 'confirmDelete', data: playerData})} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4">Delete Player</button>
+                    )}
+                </div>
+                <div className="flex gap-4">
+                     <button type="button" onClick={onCancel} className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4">Abbrechen</button>
+                     <button type="submit" className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4">Speichern</button>
+                </div>
+            </div>
+        </form>
+    );
+};
+
